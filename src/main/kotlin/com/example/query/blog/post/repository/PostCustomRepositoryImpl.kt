@@ -85,4 +85,29 @@ class PostCustomRepositoryImpl : MyQuerydslSupport(Post::class.java), PostCustom
         }
         PageImpl(content.await(), pageable, totalCount.await())
     }
+
+    // 추출한 병렬 처리 메서드 사용
+    fun useFetchPageParallel(
+        pageable: Pageable,
+        keyword: String
+    ): Page<Post> {
+        return fetchPageParallel(
+            pageable = pageable,
+            contentQuery = { selectFrom(qPost).where(qPost.title.contains(keyword)) },
+            countQuery = { select(qPost.count()).from(qPost).where(qPost.title.contains(keyword)) }
+        )
+    }
+
+    // 추출한 Slice 처리 메서드 사용
+    fun useFetchSlice (
+        pageable: Pageable,
+        keyword: String
+    ): Slice<Post> {
+        return fetchSlice(
+            pageable = pageable,
+            contentQuery = {
+                selectFrom(qPost).where(qPost.title.contains(keyword))
+            }
+        )
+    }
 }

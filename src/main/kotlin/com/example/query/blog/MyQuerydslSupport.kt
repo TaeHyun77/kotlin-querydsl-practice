@@ -6,6 +6,14 @@ import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Slice
+import org.springframework.data.domain.SliceImpl
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 
 abstract class MyQuerydslSupport (c: Class<*>) : QuerydslRepositorySupport(c) {
@@ -28,5 +36,29 @@ abstract class MyQuerydslSupport (c: Class<*>) : QuerydslRepositorySupport(c) {
     // EntityPath : 엔티티 하나를 가리키는 Querydsl의 경로
     protected fun <T> selectFrom(from: EntityPath<T>): JPAQuery<T> {
         return queryFactory.selectFrom(from)
+    }
+
+    // content, count 코루틴 병렬 처리 추출
+    protected fun <T: Any> fetchPageParallel(
+        pageable: Pageable,
+        contentQuery: (JPAQueryFactory) -> JPAQuery<T>,
+        countQuery: (JPAQueryFactory) -> JPAQuery<Long>
+    ): Page<T> = runBlocking {
+        val content = async(Dispatchers.IO) { querydsl!!.applyPagination(pageable, contentQuery(queryFactory)).fetch() }
+        val total = async(Dispatchers.IO) { countQuery(queryFactory).fetchFirst() ?: 0L }
+        PageImpl(content.await(), pageable, total.await())
+    }
+
+    // slice 처리 추출
+    protected fun <T: Any> fetchSlice(
+        pageable: Pageable,
+        contentQuery: (JPAQueryFactory) -> JPAQuery<T>
+    ): Slice<T> {
+        val content = querydsl!!.applyPagination(pageable, contentQuery(queryFactory))
+            .limit((pageable.pageSize + 1).toLong())
+            .fetch()
+
+        val hasNext = content.size > pageable.pageSize
+        return SliceImpl(content.take(pageable.pageSize), pageable, hasNext)
     }
 }
