@@ -1,7 +1,11 @@
-package com.example.query.blog
+package com.example.query.blog.support
 
+import com.example.query.blog.support.dto.CursorDirection
+import com.example.query.blog.support.dto.CursorPageResponse
+import com.example.query.blog.support.dto.CursorRequest
 import com.querydsl.core.types.EntityPath
 import com.querydsl.core.types.Expression
+import com.querydsl.core.types.dsl.NumberPath
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
@@ -60,5 +64,46 @@ abstract class MyQuerydslSupport (c: Class<*>) : QuerydslRepositorySupport(c) {
 
         val hasNext = content.size > pageable.pageSize
         return SliceImpl(content.take(pageable.pageSize), pageable, hasNext)
+    }
+
+    protected fun <T> cursorPagination(
+        cursorRequest: CursorRequest,
+        cursorPath: NumberPath<Long>,
+        contentQuery: (JPAQueryFactory) -> JPAQuery<T>
+    ): CursorPageResponse<T> {
+        val direction = cursorRequest.direction
+        val pageSize = cursorRequest.pageSize
+        val cursorValue = cursorRequest.cursorKey?.toLong()
+
+        val query = contentQuery(queryFactory)
+
+        when(direction) {
+            CursorDirection.FIRST, CursorDirection.LAST -> Unit
+            CursorDirection.NEXT -> {
+                // // cursorValue (커서 값) 없이 NEXT를 보내면 예외 발생시킴
+                requireNotNull(cursorValue) { "NEXT direction : cursorValue가 존재하지 않습니다." }
+                query.where(cursorPath.lt(cursorValue))
+            }
+            CursorDirection.PREV -> {
+                requireNotNull(cursorValue) { "PREV direction : cursorValue가 존재하지 않습니다." }
+                query.where(cursorPath.gt(cursorValue))
+            }
+        }
+
+        // 정렬 조건
+        query.orderBy(
+            when {
+                direction.isForward -> cursorPath.desc()
+                else -> cursorPath.asc()
+            }
+        )
+
+        query.limit((pageSize + 1).toLong())
+        val content = query.fetch()
+        return CursorPageResponse(
+            content = content,
+            direction = direction,
+            pageSize = pageSize,
+        )
     }
 }

@@ -1,6 +1,6 @@
 package com.example.query.blog.post.repository
 
-import com.example.query.blog.MyQuerydslSupport
+import com.example.query.blog.support.MyQuerydslSupport
 import com.example.query.blog.post.Post
 import com.querydsl.jpa.impl.JPAQuery
 import kotlinx.coroutines.Deferred
