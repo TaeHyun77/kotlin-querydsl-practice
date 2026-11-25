@@ -2,6 +2,8 @@ package com.example.query.blog.post.repository
 
 import com.example.query.blog.support.MyQuerydslSupport
 import com.example.query.blog.post.Post
+import com.example.query.blog.support.dto.CursorPageResponse
+import com.example.query.blog.support.dto.CursorRequest
 import com.querydsl.jpa.impl.JPAQuery
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -108,6 +110,19 @@ class PostCustomRepositoryImpl : MyQuerydslSupport(Post::class.java), PostCustom
             contentQuery = {
                 selectFrom(qPost).where(qPost.title.contains(keyword))
             }
+        )
+    }
+
+    // 추출한 커서 페이지네이션 메서드 사용 - 커서 조건과 정렬은 헬퍼가 붙이므로 검색 조건만 전달
+    override fun findCursorByKeyword(
+        keyword: String,
+        cursorRequest: CursorRequest
+    ): CursorPageResponse<Post> {
+        return cursorPagination(
+            cursorRequest = cursorRequest,
+            cursorPath = qPost.id,
+            cursorKeyOf = { it.id!! }, // 조회된 엔티티는 영속화된 상태라 id가 항상 존재
+            contentQuery = { selectFrom(qPost).where(qPost.title.contains(keyword)) }
         )
     }
 }
