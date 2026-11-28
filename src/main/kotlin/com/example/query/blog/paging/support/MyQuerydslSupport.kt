@@ -1,8 +1,8 @@
-package com.example.query.blog.support
+package com.example.query.blog.paging.support
 
-import com.example.query.blog.support.dto.CursorDirection
-import com.example.query.blog.support.dto.CursorPageResponse
-import com.example.query.blog.support.dto.CursorRequest
+import com.example.query.blog.paging.support.dto.CursorDirection
+import com.example.query.blog.paging.support.dto.CursorPageResponse
+import com.example.query.blog.paging.support.dto.CursorRequest
 import com.querydsl.core.types.EntityPath
 import com.querydsl.core.types.Expression
 import com.querydsl.core.types.dsl.NumberPath
@@ -54,7 +54,7 @@ abstract class MyQuerydslSupport (c: Class<*>) : QuerydslRepositorySupport(c) {
     }
 
     // slice 처리 추출
-    protected fun <T: Any> fetchSlice(
+    protected fun <T: Any> applySlicePagination(
         pageable: Pageable,
         contentQuery: (JPAQueryFactory) -> JPAQuery<T>
     ): Slice<T> {
@@ -68,7 +68,7 @@ abstract class MyQuerydslSupport (c: Class<*>) : QuerydslRepositorySupport(c) {
 
     // 커서 기반 페이지네이션 메서드
     // 방향은 클라이언트가 보내고, cursorPagination이 그 값으로 조회 조건과 정렬을 정합니다.
-    protected fun <T> cursorPagination(
+    protected fun <T> applyCursorPagination(
         cursorRequest: CursorRequest,
         cursorPath: NumberPath<Long>,
         cursorKeyOf: (T) -> Long, // 결과 항목에서 cursorPath와 같은 키 값을 꺼내는 방법

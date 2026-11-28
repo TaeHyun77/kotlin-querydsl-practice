@@ -1,9 +1,9 @@
-package com.example.query.blog.post
+package com.example.query.blog.paging.post
 
-import com.example.query.blog.member.Member
-import com.example.query.blog.post.repository.PostRepository
-import com.example.query.blog.support.dto.CursorDirection
-import com.example.query.blog.support.dto.CursorRequest
+import com.example.query.blog.paging.member.Member
+import com.example.query.blog.paging.post.repository.PostRepository
+import com.example.query.blog.paging.support.dto.CursorDirection
+import com.example.query.blog.paging.support.dto.CursorRequest
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

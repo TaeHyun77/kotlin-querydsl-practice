@@ -1,9 +1,9 @@
-package com.example.query.blog.post.repository
+package com.example.query.blog.paging.post.repository
 
-import com.example.query.blog.support.MyQuerydslSupport
-import com.example.query.blog.post.Post
-import com.example.query.blog.support.dto.CursorPageResponse
-import com.example.query.blog.support.dto.CursorRequest
+import com.example.query.blog.paging.support.MyQuerydslSupport
+import com.example.query.blog.paging.post.Post
+import com.example.query.blog.paging.support.dto.CursorPageResponse
+import com.example.query.blog.paging.support.dto.CursorRequest
 import com.querydsl.jpa.impl.JPAQuery
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +15,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Slice
 import org.springframework.data.domain.SliceImpl
-import com.example.query.blog.post.QPost.post as qPost
+import com.example.query.blog.paging.post.QPost.post as qPost
 
 class PostCustomRepositoryImpl : MyQuerydslSupport(Post::class.java), PostCustomRepository {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -105,7 +105,7 @@ class PostCustomRepositoryImpl : MyQuerydslSupport(Post::class.java), PostCustom
         pageable: Pageable,
         keyword: String
     ): Slice<Post> {
-        return fetchSlice(
+        return applySlicePagination(
             pageable = pageable,
             contentQuery = {
                 selectFrom(qPost).where(qPost.title.contains(keyword))
@@ -118,7 +118,7 @@ class PostCustomRepositoryImpl : MyQuerydslSupport(Post::class.java), PostCustom
         keyword: String,
         cursorRequest: CursorRequest
     ): CursorPageResponse<Post> {
-        return cursorPagination(
+        return applyCursorPagination(
             cursorRequest = cursorRequest,
             cursorPath = qPost.id,
             cursorKeyOf = { it.id!! }, // 조회된 엔티티는 영속화된 상태라 id가 항상 존재

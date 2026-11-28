@@ -1,4 +1,4 @@
-package com.example.query.blog.support.dto
+package com.example.query.blog.paging.support.dto
 
 @ConsistentCopyVisibility
 data class CursorPageResponse<T> private constructor( // private 생성자로 응답 객체의 계산 규칙을 강제

@@ -1,4 +1,4 @@
-package com.example.query.blog.support.dto
+package com.example.query.blog.paging.support.dto
 
 data class CursorRequest(
     val direction: CursorDirection = CursorDirection.FIRST,
