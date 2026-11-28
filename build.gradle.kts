@@ -38,6 +38,9 @@ dependencies {
 	kapt("io.github.openfeign.querydsl:querydsl-apt:7.7:jpa")
 	kapt("jakarta.persistence:jakarta.persistence-api")
 	kapt("jakarta.annotation:jakarta.annotation-api")
+
+	// Querydsl SQL (Batch Insert/Update용) — querydsl-core가 중복되지 않도록 위 OpenFeign 계열과 버전을 맞춤
+	implementation("io.github.openfeign.querydsl:querydsl-sql:7.7")
 }
 
 kotlin {

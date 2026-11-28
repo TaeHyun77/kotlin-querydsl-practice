@@ -1,6 +1,6 @@
-package com.example.query.blog.post
+package com.example.query.blog.paging.post
 
-import com.example.query.blog.member.Member
+import com.example.query.blog.paging.member.Member
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue

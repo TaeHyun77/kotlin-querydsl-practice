@@ -1,4 +1,4 @@
-package com.example.query.blog.member
+package com.example.query.blog.paging.member
 
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
