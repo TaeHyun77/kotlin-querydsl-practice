@@ -3,7 +3,7 @@ package com.example.query.blog.support.dto
 data class CursorRequest(
     val direction: CursorDirection = CursorDirection.FIRST,
     val pageSize: Int = 20,
-    val cursorKey: String? = null
+    val cursorKey: Long? = null
 )
 
 enum class CursorDirection(val isForward: Boolean) {

@@ -2,6 +2,8 @@ package com.example.query.blog.post
 
 import com.example.query.blog.member.Member
 import com.example.query.blog.post.repository.PostRepository
+import com.example.query.blog.support.dto.CursorDirection
+import com.example.query.blog.support.dto.CursorRequest
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -70,5 +72,43 @@ class PostRepositoryTest @Autowired constructor(
 
         assertEquals(listOf("Querydsl 심화"), result.content.map { it.title })
         assertEquals(2L, result.totalElements)
+    }
+
+    // 데이터: "Querydsl 입문"(id 작음), "Querydsl 심화"(id 큼) — pageSize 1로 한 건씩 이동
+    @Test
+    fun `findCursorByKeyword - FIRST, NEXT, PREV 순서로 커서를 따라 이동한다`() {
+        val first = postRepository.findCursorByKeyword("Querydsl", CursorRequest(CursorDirection.FIRST, pageSize = 1))
+
+        assertEquals(listOf("Querydsl 심화"), first.content.map { it.title })
+        assertTrue(first.hasNext)
+        assertFalse(first.hasPrev)
+        assertEquals(first.content.last().id, first.nextCursor)
+
+        val next = postRepository.findCursorByKeyword(
+            "Querydsl",
+            CursorRequest(CursorDirection.NEXT, pageSize = 1, cursorKey = first.nextCursor)
+        )
+
+        assertEquals(listOf("Querydsl 입문"), next.content.map { it.title })
+        assertFalse(next.hasNext)
+        assertTrue(next.hasPrev)
+
+        val prev = postRepository.findCursorByKeyword(
+            "Querydsl",
+            CursorRequest(CursorDirection.PREV, pageSize = 1, cursorKey = next.prevCursor)
+        )
+
+        assertEquals(listOf("Querydsl 심화"), prev.content.map { it.title })
+        assertTrue(prev.hasNext)
+        assertFalse(prev.hasPrev)
+    }
+
+    @Test
+    fun `findCursorByKeyword - LAST는 마지막 페이지를 화면 순서로 반환한다`() {
+        val last = postRepository.findCursorByKeyword("Querydsl", CursorRequest(CursorDirection.LAST, pageSize = 1))
+
+        assertEquals(listOf("Querydsl 입문"), last.content.map { it.title })
+        assertFalse(last.hasNext)
+        assertTrue(last.hasPrev)
     }
 }

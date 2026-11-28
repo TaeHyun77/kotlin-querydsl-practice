@@ -66,21 +66,24 @@ abstract class MyQuerydslSupport (c: Class<*>) : QuerydslRepositorySupport(c) {
         return SliceImpl(content.take(pageable.pageSize), pageable, hasNext)
     }
 
+    // 커서 기반 페이지네이션 메서드
+    // 방향은 클라이언트가 보내고, cursorPagination이 그 값으로 조회 조건과 정렬을 정합니다.
     protected fun <T> cursorPagination(
         cursorRequest: CursorRequest,
         cursorPath: NumberPath<Long>,
+        cursorKeyOf: (T) -> Long, // 결과 항목에서 cursorPath와 같은 키 값을 꺼내는 방법
         contentQuery: (JPAQueryFactory) -> JPAQuery<T>
     ): CursorPageResponse<T> {
         val direction = cursorRequest.direction
         val pageSize = cursorRequest.pageSize
-        val cursorValue = cursorRequest.cursorKey?.toLong()
+        val cursorValue = cursorRequest.cursorKey
 
         val query = contentQuery(queryFactory)
 
         when(direction) {
             CursorDirection.FIRST, CursorDirection.LAST -> Unit
             CursorDirection.NEXT -> {
-                // // cursorValue (커서 값) 없이 NEXT를 보내면 예외 발생시킴
+                // cursorValue (커서 값) 없이 NEXT를 보내면 예외 발생시킴
                 requireNotNull(cursorValue) { "NEXT direction : cursorValue가 존재하지 않습니다." }
                 query.where(cursorPath.lt(cursorValue))
             }
@@ -100,10 +103,14 @@ abstract class MyQuerydslSupport (c: Class<*>) : QuerydslRepositorySupport(c) {
 
         query.limit((pageSize + 1).toLong())
         val content = query.fetch()
+
+        // 응답 객체는 팩토리 함수(invoke)를 통해 방향별 커서와 플래그를 자동으로 계산
+        // 실제로는 CursorPageResponse.Companion.invoke(...) 형태
         return CursorPageResponse(
             content = content,
             direction = direction,
             pageSize = pageSize,
+            cursorKeyOf = cursorKeyOf,
         )
     }
 }
